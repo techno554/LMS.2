@@ -40,6 +40,17 @@ if uploaded_file is not None:
     X = df[['Partisipasi', 'Kehadiran']]
     y = df['status_kelulusan']
 
+    # Validasi tambahan
+    if X.isnull().values.any() or y.isnull().values.any():
+        st.error("❌ Dataset mengandung nilai kosong (NaN). Mohon periksa dan lengkapi data.")
+        st.stop()
+
+    try:
+        X = X.astype(float)
+    except ValueError:
+        st.error("❌ Kolom input harus berupa angka. Periksa kembali format 'Partisipasi' dan 'Kehadiran'.")
+        st.stop()
+
     # Train model
     model = LogisticRegression()
     model.fit(X, y)
@@ -76,10 +87,7 @@ if uploaded_file is not None:
         df_filtered = df_filtered[df_filtered['status_kelulusan'] == 0]
 
     st.subheader("📄 Tabel Data dan Prediksi")
-    if 'ID_Peserta' in df.columns and 'Nama' in df.columns:
-        st.dataframe(df_filtered[['ID_Peserta', 'Nama', 'Partisipasi', 'Kehadiran', 'status_kelulusan', 'Prediksi', 'Prob_Lulus']])
-    else:
-        st.dataframe(df_filtered[['Partisipasi', 'Kehadiran', 'status_kelulusan', 'Prediksi', 'Prob_Lulus']])
+    st.dataframe(df_filtered[['ID_Peserta', 'Nama', 'Partisipasi', 'Kehadiran', 'status_kelulusan', 'Prediksi', 'Prob_Lulus']])
 
     # Visualisasi
     st.subheader("📊 Visualisasi Kelulusan")
@@ -118,7 +126,7 @@ if uploaded_file is not None:
     st.text(classification_report(y, y_pred, target_names=['TIDAK LULUS', 'LULUS']))
 
     # Simpan log
-    log_data = df[['Partisipasi', 'Kehadiran', 'Prediksi', 'Prob_Lulus']]
+    log_data = df[['ID_Peserta', 'Nama', 'Partisipasi', 'Kehadiran', 'Prediksi', 'Prob_Lulus']]
     log_output = io.BytesIO()
     with pd.ExcelWriter(log_output, engine='xlsxwriter') as writer:
         log_data.to_excel(writer, index=False, sheet_name='Log_Prediksi')
